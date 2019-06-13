@@ -1,0 +1,8 @@
+limit(15:00)
+baseaddress(15:00)
+baseaddress(23:16)
+p dpl s  type(4:0)	1001 0010
+g d/b l avl limit(19:16)  1100 0000
+base(31:24)
+
+0011 1000

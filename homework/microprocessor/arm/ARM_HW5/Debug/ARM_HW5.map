@@ -1,0 +1,65 @@
+******************************************************************************
+                  TI ARM Linker PC v5.0.4                      
+******************************************************************************
+>> Linked Fri Apr 19 19:23:27 2019
+
+OUTPUT FILE NAME:   <ARM_HW5.out>
+ENTRY POINT SYMBOL: 0
+
+
+MEMORY CONFIGURATION
+
+         name            origin    length      used     unused   attr    fill
+----------------------  --------  ---------  --------  --------  ----  --------
+  FLASH                 00000000   00040000  0000050e  0003faf2  R  X
+  SRAM                  20000000   00008000  00000000  00008000  RW X
+
+
+SEGMENT ALLOCATION MAP
+
+run origin  load origin   length   init length attrs members
+----------  ----------- ---------- ----------- ----- -------
+00000000    00000000    0000050e   0000050e    r-x
+  00000000    00000000    0000050e   0000050e    r-x .intvecs
+
+
+SECTION ALLOCATION MAP
+
+ output                                  attributes/
+section   page    origin      length       input sections
+--------  ----  ----------  ----------   ----------------
+.intvecs   0    00000000    0000050e     
+                  00000000    0000050e     2014314666_HW5.obj (.intvecs)
+
+.text      0    00000000    00000000     
+
+.cinit     0    00000000    00000000     UNINITIALIZED
+
+.init_array 
+*          0    00000000    00000000     UNINITIALIZED
+
+
+GLOBAL SYMBOLS: SORTED ALPHABETICALLY BY Name 
+
+address    name
+--------   ----
+00000200   __STACK_TOP
+00000000   __TI_static_base__
+ffffffff   __binit__
+ffffffff   __c_args__
+00000000   __stack
+ffffffff   binit
+
+
+GLOBAL SYMBOLS: SORTED BY Symbol Address 
+
+address    name
+--------   ----
+00000000   __TI_static_base__
+00000000   __stack
+00000200   __STACK_TOP
+ffffffff   __binit__
+ffffffff   __c_args__
+ffffffff   binit
+
+[6 symbols]
