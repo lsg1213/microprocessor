@@ -21,7 +21,7 @@ START:				; boot loader(1st sector) starts
 
     call load_sectors 		; load rest sectors
 
-    jmp sector_2G
+    jmp sector_2
 
 load_sectors:			 	; read and copy the rest sectors of disk
 
@@ -111,10 +111,35 @@ Protected_START:
 
 
 ;----------------------------------------------------------------------------------------------------------
+	mov ebx, idt_00
+	mov eax, ISR_00
+	mov word[ebx], ax
+	shr eax, 16
+	mov word[ebx+6], ax
+
+	mov ebx, idt_0d
+	mov eax, ISR_13
+	mov word[ebx], ax
+	shr eax, 16
+	mov word[ebx+6], ax
+
+	mov ebx, idt_50
+	mov eax, ISR_80
+	mov word[ebx], ax
+	shr eax, 16
+	mov word[ebx+6], ax
+
+	lidt [idt_ptr]
+
+	jmp TSS1Selector:0
 	
 Task1:
 
 	; Print "Entering Task1"
+	mov eax, MSG_Task1
+	mov edi, 80*2*2+2*0
+	mov bl, 0x02
+	call printf_s
 	
 	mov 	eax, 0x0
 	mov 	ebx, 0x1
@@ -128,7 +153,7 @@ Task1:
 	
 	call print_reg_1
 	
-	jmp $		; this is ending point of program
+	;jmp $		; this is ending point of program
 				; when you complete the code, this line must be deactive 
 	
 	xor eax, eax
@@ -142,10 +167,20 @@ Task1_Return:
 
 	; Print "Task1 switched BACK from IRQ 00h"
 	; Use IDT for switching Task2
+	mov eax, MSG_Task1_Return
+	mov edi, 80*2*3+2*0
+	mov bl, 0x02
+	call printf_s
+
+	int 48
 	
 Task2:
 
 	; Print "Task2 switched from Task1"
+	mov eax, MSG_Task2
+	mov edi, 80*2*4+2*0
+	mov bl, 0x02
+	call printf_s
 
 	mov 	eax, 0x4
 	mov 	ebx, 0x5
@@ -164,6 +199,10 @@ Task2:
 Task2_Return:	
 
 	; Print "Task2 switched BACK from IRQ 0Dh"
+	mov eax, MSG_Task2_Return
+	mov edi, 80*2*5+2*0
+	mov bl, 0x02
+	call printf_s
 	
 	mov 	eax, 0x4
 	mov 	ebx, 0x5
@@ -176,14 +215,19 @@ Task2_Return:
 	push 	edx	
 	
 	; Call the User Defined Interrupt - ISR_80
+	int 80
 	
 Task2_Return2:	
 
 	call print_reg_6
 
 	; Print "Task2 switched BACK from IRQ 50h"
+	mov eax, MSG_Task2_Return2
+	mov edi, 80*2*6+2*0
+	mov bl, 0x02
+	call printf_s
 	
-	;jmp $					; this is ending point of program
+	jmp $					; this is ending point of program
 							; when return from IRQ, this line must be active to end program
 	
 
@@ -204,6 +248,20 @@ ISR_00:
 	; print "#DE : Divided by Zero"
 	; Do not forget use push/pop (all and flags) for storing register values
 	; return to Task1_Return
+	pushad
+	pushfd
+
+	mov eax, MSG_ISR_00
+	mov edi, 80*2*9+2*0
+	mov bl, 0x07
+	call printf_s
+
+	popfd
+	popad
+	add esp, 4
+	push Task1_Return
+
+	iret
 	
 
 ISR_13: ; General Protection Fault
@@ -213,6 +271,20 @@ ISR_13: ; General Protection Fault
 	; print "#GP : General Protection Fault"
 	; Do not forget use push/pop (all and flags) for storing register values
 	; return to Task2_Return	
+	pushad
+	pushfd
+
+	mov eax, MSG_ISR_13
+	mov edi, 80*2*10+2*0
+	mov bl, 0x07
+	call printf_s
+
+	popfd
+	popad
+	add esp, 8
+	push Task2_Return
+
+	iret
 
 ISR_80:	; User Defined ISR
 
@@ -220,6 +292,18 @@ ISR_80:	; User Defined ISR
 
 	; print "User Defined Interrupt"
 	; Do not forget use push/pop (all and flags) for storing register values
+	pushad
+	pushfd
+
+	mov eax, MSG_ISR_80
+	mov edi, 80*2*11+2*0
+	mov bl, 0x07
+	call printf_s
+
+	popfd
+	popad
+	add esp, 4
+	push Task2_Return2
 	
 	xor eax, eax
 	xor ecx, ecx
@@ -229,6 +313,7 @@ ISR_80:	; User Defined ISR
 	dec ax
 
 	; return to Task2_Return2		
+	iret
 	
 ;-------------------------------------------------------------
 MSG_Protected_MODE_Test: db'Protected Mode',0
@@ -1433,5 +1518,116 @@ gdt_ptr:
 ;																        ;	
 ;																        ;	
 ;------------------------------------------------------------------------
+idt_00:
+	dw 0
+	dw SYS_EXT_SEL
+	db 0
+	db 0x8e
+	dw 0
+
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	
+idt_0d:
+	dw 0
+	dw SYS_EXT_SEL
+	db 0
+	db 0x8e
+	dw 0
+
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	
+idt_30:
+	dw 0
+	dw TSS2Selector
+	db 0
+	db 0x85
+	dw 0
+
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+	dd 0, 0
+
+idt_50:
+	dw 0
+	dw SYS_EXT_SEL
+	db 0
+	db 0x8e
+	dw 0
+
+idt_ptr:
+	dw idt_ptr - idt_00 - 1
+	dd idt_00
 sector_end:
 
