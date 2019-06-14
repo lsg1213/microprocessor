@@ -302,8 +302,6 @@ ISR_80:	; User Defined ISR
 
 	popfd
 	popad
-	add esp, 4
-	push Task2_Return2
 	
 	xor eax, eax
 	xor ecx, ecx
